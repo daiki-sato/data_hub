@@ -1,0 +1,64 @@
+﻿@page "/enriches"
+@using Timer = System.Timers.Timer
+@using DataHubIntern.Shared.Enrich
+
+@inject IEnrichService EnrichService
+
+<h2 class="heading">リッチ化結果</h2>
+
+@if (_records == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div>
+        <button class="btn-primary" @onclick="@(async () => await EnrichAsync())">リッチ化</button>
+    </div>
+    <div class="results-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>SOC</th>
+                    <th>主業</th>
+                    <th>最新期業績売上高レンジ(百万円) 小</th>
+                    <th>最新期業績売上高レンジ(百万円) 大</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var record in _records)
+                {
+                    <tr>
+                        <td>@record.Soc</td>
+                        <td>@record.MainIndustrialClassName</td>
+                        <td>@record.LatestSalesAccountingTermSales.GreaterThan</td>
+                        <td>@record.LatestSalesAccountingTermSales.LessThan</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+
+    private List<OrganizationRichInfo>? _records;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetRecordsAsync();
+    }
+
+    private async Task EnrichAsync()
+    {
+        await EnrichService.EnrichOrganizationsAsync(CancellationToken.None);
+        await GetRecordsAsync();
+    }
+
+    private async Task GetRecordsAsync()
+    {
+        var response = await EnrichService.GetEnrichedOrganizationsAsync(CancellationToken.None);
+        _records = response.OrganizationRichInfos;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,12 @@
+﻿.main-header {
+    position: relative;
+    height: 64px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.main-logo {
+    width: 200.94px;
+    height: 27.61px;
+    margin: 17px 32px;
+}

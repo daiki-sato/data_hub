@@ -1,0 +1,70 @@
+﻿@page "/results"
+@using DataHubIntern.Shared.Identity
+
+@inject IIdentityService IdentityService
+
+<h2 class="heading">識別結果</h2>
+
+@if (records == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="results-container">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>SOC</th>
+                <th>企業名</th>
+                <th>郵便番号</th>
+                <th>住所</th>
+                <th>TEL</th>
+                <th>FAX</th>
+                <th>URL</th>
+                <th>Email</th>
+                <th>氏名</th>
+                <th>携帯電話</th>
+                <th>部署</th>
+                <th>役職</th>
+                <th>作成日時</th>
+                <th>更新日時</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var record in records)
+            {
+                <tr>
+                    <td><NavLink href=@($"results/{record.Soc}")>@record.Soc</NavLink></td>
+                    <td>@record.OrganizationName</td>
+                    <td>@record.ZipCode</td>
+                    <td>@record.Address</td>
+                    <td>@record.Tel</td>
+                    <td>@record.Fax</td>
+                    <td>@record.Url</td>
+                    <td>@record.Email</td>
+                    <td>@record.FullName</td>
+                    <td>@record.Mobile</td>
+                    <td>@record.Division</td>
+                    <td>@record.Position</td>
+                    <td>@record.DataCreatedAt</td>
+                    <td>@record.DataUpdatedAt</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+
+@code {
+
+    private List<Identity>? records;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await IdentityService.ListAsync();
+        records = response.Identities;
+    }
+
+}

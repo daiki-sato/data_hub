@@ -1,0 +1,83 @@
+﻿@page "/results/{Id}"
+@using DataHubIntern.Shared.Identity
+
+@inject IIdentityService IdentityService
+
+<h2 class="heading">@Id のデータ</h2>
+
+@if (identities == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="result-container">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>SOC</th>
+                <th>企業名</th>
+                <th>郵便番号</th>
+                <th>住所</th>
+                <th>TEL</th>
+                <th>FAX</th>
+                <th>URL</th>
+                <th>Email</th>
+                <th>氏名</th>
+                <th>携帯電話</th>
+                <th>部署</th>
+                <th>役職</th>
+                <th>作成日時</th>
+                <th>更新日時</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var identity in identities)
+            {
+                <tr>
+                    <td><NavLink href=@($"results/{identity.Soc}")>@identity.Soc</NavLink></td>
+                    <td>@identity.OrganizationName</td>
+                    <td>@identity.ZipCode</td>
+                    <td>@identity.Address</td>
+                    <td>@identity.Tel</td>
+                    <td>@identity.Fax</td>
+                    <td>@identity.Url</td>
+                    <td>@identity.Email</td>
+                    <td>@identity.FullName</td>
+                    <td>@identity.Mobile</td>
+                    <td>@identity.Division</td>
+                    <td>@identity.Position</td>
+                    <td>@identity.DataCreatedAt</td>
+                    <td>@identity.DataUpdatedAt</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; } = default!;
+
+    private List<Identity>? identities;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        var response = await IdentityService.ListBySocAsync(new ListBySocRequest { UniqueKey = Id });
+        identities = response.Identities;
+    }
+
+}

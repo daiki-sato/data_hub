@@ -1,0 +1,16 @@
+; Top-most EditorConfig file
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+
+[*.*proj]
+indent_size = 2
+
+[Web.config]
+indent_size = 2
+
+[{*.yml, *.yaml}]
+indent_size = 2

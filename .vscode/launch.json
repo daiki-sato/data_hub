@@ -1,0 +1,72 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Use IntelliSense to find out which attributes exist for C# debugging
+            // Use hover for the description of the existing attributes
+            // For further information visit https://github.com/dotnet/vscode-csharp/blob/main/debugger-launchjson.md
+            "name": "DataHubIntern.MinimumApi (Launch and Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-server",
+            "program": "${workspaceFolder}/DataHubIntern/DataHubIntern.MinimumApi/bin/Debug/net8.0/DataHubIntern.MinimumApi.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/DataHubIntern/DataHubIntern.MinimumApi",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "DataHubIntern.Client (Launch and Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-client",
+            "cwd": "${workspaceFolder}/DataHubIntern/DataHubIntern.Client/",
+            "program": "dotnet",
+            "args": [
+                "watch",
+                "run",
+                "--project",
+                "${workspaceFolder}/DataHubIntern/DataHubIntern.Client/DataHubIntern.Client.csproj",
+                "--verbose"
+            ],
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development",
+                "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "true", // Prevents browser from opening on launch
+            },
+        },
+        {
+            "name": "DataHubIntern.Client (Attach)",
+            "type": "blazorwasm",
+            "request": "attach",
+            "cwd": "${workspaceFolder}/DataHubIntern/DataHubIntern.Client",
+            "url": "https://localhost:7273/",
+        },
+        {
+            "name": "DataHubIntern.EnrichFunctions (Attach)",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:azureFunctions.pickProcess}"
+        },
+        {
+          "name": ".NET Core Attach",
+          "type": "coreclr",
+          "request": "attach"
+        },
+    ],
+    "compounds": [
+        {
+          "name": "Frontend & Backend",
+          "configurations": [
+            "DataHubIntern.MinimumApi (Launch and Debug)",
+            "DataHubIntern.Client (Launch and Debug)",
+            "DataHubIntern.Client (Attach)",
+          ],
+          "stopAll": true
+        }
+    ]
+}

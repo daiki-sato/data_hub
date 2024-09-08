@@ -1,0 +1,124 @@
+﻿@page "/"
+@using DataHubIntern.Shared.File
+@using DataHubIntern.Client.Services
+
+@inject NavigationManager NavigationManager
+@inject IFileService FileService
+@inject ICsvValidator CsvValidatorService
+
+<h2 class="heading">ファイルインポート</h2>
+<div class="d-flex flex-column p-4">
+
+    <InputFile OnChange="@HandleSelectedAsync" class="mx-auto" />
+    
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger mt-4" role="alert" style="white-space: pre-line">
+            @_errorMessage
+        </div>
+    }
+
+    <Button OnClick="UploadFileAsync" IsDisabled="@(_file is null || !_isFileValid)" class="mx-auto mt-4">
+        実行
+    </Button>
+    
+    <Button @onclick='() => NavigationManager.NavigateTo("/results")' class="mx-auto mt-5">
+        識別結果を表示する
+    </Button>
+    
+    <Button @onclick='() => NavigationManager.NavigateTo("/enriches")' class="mx-auto mt-5">
+        リッチ化結果を表示する
+    </Button>
+</div>
+
+@if (_isUploading)
+{
+    <em>Loading...</em>
+}
+else if (_result is not null)
+{
+    <p>インポートに成功したレコード数 : @_result.Successes.Count</p>
+    <p>インポートに失敗したレコード数 : @_result.Errors.Count</p>
+    @if (_result.Errors.Any())
+    {
+        <div class="alert alert-danger" role="alert">
+            @foreach (var error in _result.Errors)
+            {
+                <ul>
+                    @foreach (var errorMessage in error.Value)
+                    {
+                        <li class="list-unstyled">@error.Key 行目: @errorMessage</li>
+                    }
+                </ul>
+            }
+        </div>
+    }
+}
+
+@code {
+    private IBrowserFile? _file;
+    private const int ChunkSize = 1024 * 1024; // 1 MB
+    private UploadResponse? _result;
+
+    private bool _isFileValid;
+    private string? _errorMessage;
+
+    private bool _isUploading;
+
+    private async Task HandleSelectedAsync(InputFileChangeEventArgs e)
+    {
+        _errorMessage = null;
+        _file = e.File;
+
+        var validationResult = CsvValidatorService.ValidateHeaders(await GetCsvHeadersAsync(_file));
+        _isFileValid = validationResult.IsValid;
+
+        if (!validationResult.IsValid)
+        {
+            _errorMessage = validationResult.ErrorMessage;
+        }
+        return;
+
+        async Task<List<string>> GetCsvHeadersAsync(IBrowserFile csvFile)
+        {
+            var headers = new List<string>();
+
+            var stream = csvFile.OpenReadStream();
+            using var reader = new StreamReader(stream);
+            var headersLine = await reader.ReadLineAsync();
+
+            if (headersLine != null)
+            {
+                headers = headersLine.Split(',').ToList();
+            }
+
+            return headers;
+        }
+    }
+
+    async Task UploadFileAsync()
+    {
+        if (_file is null) return;
+        _isUploading = true;
+        
+        _result = await FileService.UploadAsync(StreamFileData());
+
+        _isUploading = false;
+        return;
+
+        async IAsyncEnumerable<UploadRequest> StreamFileData()
+        {
+            var buffer = new byte[ChunkSize];
+            int bytesRead;
+
+            await using var fileStream = _file.OpenReadStream(maxAllowedSize: _file.Size);
+
+            while ((bytesRead = await fileStream.ReadAsync(buffer)) > 0)
+            {
+                var chunk = new byte[bytesRead];
+                Array.Copy(buffer, chunk, bytesRead);
+                yield return new UploadRequest { Name = _file.Name, ChunkData = chunk };
+            }
+        }
+    }
+}
